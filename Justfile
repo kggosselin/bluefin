@@ -1,8 +1,7 @@
 export project_root := `git rev-parse --show-toplevel`
-export gts := "39"
-export latest := "40"
+export git_branch := ` git branch --show-current`
 
-alias run := run-booted-guest
+alias run := run-container
 
 _default:
     @just help
@@ -21,18 +20,19 @@ just-check:
     #!/usr/bin/bash
     find "${project_root}" -type f -name "*.just" | while read -r file; do
     	echo "Checking syntax: $file"
-    	just --unstable --fmt --check -f $file || { exit 1; }
+    	just --unstable --fmt --check -f $file 
     done
-    just --unstable --fmt --check -f ${project_root}/Justfile || { exit 1; }
+    echo "Checking syntax: ${project_root}/Justfile"
+    just --unstable --fmt --check -f ${project_root}/Justfile
 
 # Fix Just Syntax
-[private]
 just-fix:
     #!/usr/bin/bash
     find "${project_root}" -type f -name "*.just" | while read -r file; do
     	echo "Checking syntax: $file"
-    	just --unstable --fmt -f $file || { exit 1; }
+    	just --unstable --fmt -f $file
     done
+    echo "Checking syntax: ${project_root}/Justfile"
     just --unstable --fmt -f ${project_root}/Justfile || { exit 1; }
 
 # Build Image
@@ -43,17 +43,20 @@ build image="" target="" version="":
 run-container image="" target="" version="":
     @{{ project_root }}/scripts/run-image.sh {{ image }} {{ target }} {{ version }}
 
-# Run Booted Image Session w/ Guest
-run-booted-guest image="" target="" version="":
-    @{{ project_root }}/scripts/run-booted-guest.sh {{ image }} {{ target }} {{ version }}
-
-# Run Booted Image Session w/ mounted in $USER and $HOME
-run-booted-home image="" target="" version="":
-    @{{ project_root }}/scripts/run-booted-home.sh {{ image }} {{ target }} {{ version }}
+# # Run Booted Image Session w/ Guest
+# run-booted-guest image="" target="" version="":
+#     @{{ project_root }}/scripts/run-booted-guest.sh {{ image }} {{ target }} {{ version }}
+# # Run Booted Image Session w/ mounted in $USER and $HOME
+# run-booted-home image="" target="" version="":
+#     @{{ project_root }}/scripts/run-booted-home.sh {{ image }} {{ target }} {{ version }}
 
 # Create ISO from local dev build image
 build-iso image="" target="" version="":
     @{{ project_root }}/scripts/build-iso.sh {{ image }} {{ target }} {{ version }}
+
+# Create ISO from local dev build image - use build-container-installer:main
+build-iso-installer-main image="" target="" version="":
+    @{{ project_root }}/scripts/build-iso-installer-main.sh {{ image }} {{ target }} {{ version }}
 
 # Run ISO from local dev build image
 run-iso image="" target="" version="":
@@ -85,7 +88,6 @@ help:
     echo "Or in a more stripped down version with 'just run'                            "
     echo "Specify which image you wish to build and run by name.                        "
     echo "Example: 'just run-container aurora' -> runs aurora without systemd           "
-    echo "Example: 'just run bluefin-dx' -> runs bluefin-dx with systemd                "
     echo "                                                                              "
     echo "Helper scripts are in 'project_root/scripts'.                                 "
     echo "                                                                              "
@@ -95,38 +97,26 @@ help:
     echo "                                                                              "
     just --list
 
-# Build Bluefin
-bluefin: (build "bluefin" "base" "{{gts}}")
+# Build Bluefin GTS
+bluefin: (build "bluefin" "base" "gts")
 
-# Build Bluefin-DX
-bluefin-dx: (build "bluefin" "dx" "{{gts}}")
+# Build Bluefin-DX GTS
+bluefin-dx: (build "bluefin" "dx" "gts")
 
-# Build Bluefin Latest
-bluefin-latest: (build "bluefin" "base" "{{latest}}")
+# Build Bluefin GTS ISO
+bluefin-iso: (build-iso "bluefin" "base" "gts")
 
-# Build Bluefin-DX Latest
-bluefin-dx-latest: (build "bluefin" "dx" "{{latest}}")
+# Build Bluefin-DX GTS ISO
+bluefin-dx-iso: (build-iso "bluefin" "dx" "gts")
 
 # Build Aurora
-aurora: (build "aurora" "base" "{{latest}}")
+aurora: (build "aurora" "base" "stable")
 
 # Builed Aurora-DX
-aurora-dx: (build "aurora" "dx" "{{latest}}")
+aurora-dx: (build "aurora" "dx" "stable")
 
-# Build Bluefin-ISO
-bluefin-iso: (build-iso "bluefin" "base" "{{gts}}")
+# Build Aurora ISO
+aurora-iso: (build-iso "aurora" "base" "stable")
 
-# Build Bluefin-DX-ISO
-bluefin-dx-iso: (build-iso "bluefin" "dx" "{{gts}}")
-
-# Build Bluefin Latest-ISO
-bluefin-latest-iso: (build-iso "bluefin" "base" "{{latest}}")
-
-# Build Bluefin-DX Latest-ISO
-bluefin-dx-latest-iso: (build-iso "bluefin" "dx" "{{latest}}")
-
-# Build Aurora-ISO
-aurora-iso: (build-iso "aurora" "base" "{{latest}}")
-
-# Builed Aurora-DX-ISO
-aurora-dx-iso: (build-iso "aurora" "dx" "{{latest}}")
+# Builed Aurora-DX ISO
+aurora-dx-iso: (build-iso "aurora" "dx" "stable")

@@ -1,8 +1,8 @@
-name: Bluefin Latest ISO Build
+name: Bluefin Latest ISO
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 3 * * sun'  # 03:00 Sunday
+    - cron: '0 4 * * sun'  # 04:00 Sunday
   
 
 jobs:
